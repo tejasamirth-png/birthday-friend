@@ -4,6 +4,7 @@ const surpriseButtons = document.querySelectorAll("[data-surprise]");
 const dialog = document.querySelector("[data-dialog]");
 const surpriseVideo = document.querySelector("[data-surprise-video]");
 const closeButtons = document.querySelectorAll("[data-close]");
+const viewCountElement = document.querySelector("[data-view-count]");
 const memoryCards = Array.from(document.querySelectorAll(".memory-card"));
 const dots = Array.from(document.querySelectorAll("[data-gallery-dot]"));
 const prevButton = document.querySelector("[data-gallery-prev]");
@@ -12,8 +13,28 @@ const nextButton = document.querySelector("[data-gallery-next]");
 let particles = [];
 let animationFrame = null;
 let activeMemory = 0;
+let viewCount = 5n;
 
 const colors = ["#f15445", "#ff9a91", "#c98719", "#24564d", "#5b8f3f"];
+
+function formatViewCount(count) {
+  return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function renderViewCount() {
+  if (viewCountElement) {
+    viewCountElement.textContent = formatViewCount(viewCount);
+  }
+}
+
+function startViewCounter() {
+  renderViewCount();
+
+  window.setInterval(() => {
+    viewCount += 5n;
+    renderViewCount();
+  }, 2000);
+}
 
 function resizeCanvas() {
   const pixelRatio = window.devicePixelRatio || 1;
@@ -237,3 +258,4 @@ dots.forEach((dot) => {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 setActiveMemory(0);
+startViewCounter();
