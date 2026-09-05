@@ -13,27 +13,33 @@ const nextButton = document.querySelector("[data-gallery-next]");
 let particles = [];
 let animationFrame = null;
 let activeMemory = 0;
-let viewCount = 5n;
 
 const colors = ["#f15445", "#ff9a91", "#c98719", "#24564d", "#5b8f3f"];
+const viewCounterStartedAt = Date.UTC(2026, 8, 5, 10, 32, 0);
+const viewCounterStart = 5n;
+const viewCounterStep = 5n;
+const viewCounterIntervalMs = 2000;
 
 function formatViewCount(count) {
   return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function getSharedViewCount(now = Date.now()) {
+  const elapsedMs = Math.max(0, now - viewCounterStartedAt);
+  const elapsedTicks = BigInt(Math.floor(elapsedMs / viewCounterIntervalMs));
+
+  return viewCounterStart + elapsedTicks * viewCounterStep;
+}
+
 function renderViewCount() {
   if (viewCountElement) {
-    viewCountElement.textContent = formatViewCount(viewCount);
+    viewCountElement.textContent = formatViewCount(getSharedViewCount());
   }
 }
 
 function startViewCounter() {
   renderViewCount();
-
-  window.setInterval(() => {
-    viewCount += 5n;
-    renderViewCount();
-  }, 2000);
+  window.setInterval(renderViewCount, 1000);
 }
 
 function resizeCanvas() {
