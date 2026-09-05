@@ -2,6 +2,7 @@ const canvas = document.querySelector("#confettiCanvas");
 const ctx = canvas.getContext("2d");
 const surpriseButtons = document.querySelectorAll("[data-surprise]");
 const dialog = document.querySelector("[data-dialog]");
+const surpriseVideo = document.querySelector("[data-surprise-video]");
 const closeButtons = document.querySelectorAll("[data-close]");
 const memoryCards = Array.from(document.querySelectorAll(".memory-card"));
 const dots = Array.from(document.querySelectorAll("[data-gallery-dot]"));
@@ -90,6 +91,31 @@ function burstFromElement(element) {
   if (dialog && typeof dialog.showModal === "function" && !dialog.open) {
     dialog.showModal();
   }
+
+  if (surpriseVideo) {
+    surpriseVideo.dataset.playbackState = "starting";
+    surpriseVideo.currentTime = 0;
+    surpriseVideo
+      .play()
+      .then(() => {
+        surpriseVideo.dataset.playbackState = "playing";
+      })
+      .catch(() => {
+        surpriseVideo.dataset.playbackState = "needs-user-play";
+        surpriseVideo.controls = true;
+      });
+  }
+}
+
+function closeSurprise() {
+  if (surpriseVideo) {
+    surpriseVideo.pause();
+    surpriseVideo.dataset.playbackState = "paused";
+  }
+
+  if (dialog?.open) {
+    dialog.close();
+  }
 }
 
 function setActiveMemory(index) {
@@ -109,11 +135,7 @@ surpriseButtons.forEach((button) => {
 });
 
 closeButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    if (dialog?.open) {
-      dialog.close();
-    }
-  });
+  button.addEventListener("click", closeSurprise);
 });
 
 dialog?.addEventListener("click", (event) => {
@@ -125,7 +147,7 @@ dialog?.addEventListener("click", (event) => {
     event.clientY <= dialogRect.bottom;
 
   if (!isInside) {
-    dialog.close();
+    closeSurprise();
   }
 });
 
