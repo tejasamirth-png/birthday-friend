@@ -34,6 +34,7 @@ function getSharedViewCount(now = Date.now()) {
 function renderViewCount() {
   if (viewCountElement) {
     viewCountElement.textContent = formatViewCount(getSharedViewCount());
+    viewCountElement.setAttribute("aria-busy", "false");
   }
 }
 
