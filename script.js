@@ -4,7 +4,6 @@ const surpriseButtons = document.querySelectorAll("[data-surprise]");
 const dialog = document.querySelector("[data-dialog]");
 const surpriseVideo = document.querySelector("[data-surprise-video]");
 const closeButtons = document.querySelectorAll("[data-close]");
-const viewCountElement = document.querySelector("[data-view-count]");
 const memoryCards = Array.from(document.querySelectorAll(".memory-card"));
 const dots = Array.from(document.querySelectorAll("[data-gallery-dot]"));
 const prevButton = document.querySelector("[data-gallery-prev]");
@@ -15,33 +14,6 @@ let animationFrame = null;
 let activeMemory = 0;
 
 const colors = ["#f15445", "#ff9a91", "#c98719", "#24564d", "#5b8f3f"];
-const viewCounterStartedAt = Date.UTC(2026, 8, 5, 10, 32, 0);
-const viewCounterStart = 5n;
-const viewCounterStep = 5n;
-const viewCounterIntervalMs = 2000;
-
-function formatViewCount(count) {
-  return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-function getSharedViewCount(now = Date.now()) {
-  const elapsedMs = Math.max(0, now - viewCounterStartedAt);
-  const elapsedTicks = BigInt(Math.floor(elapsedMs / viewCounterIntervalMs));
-
-  return viewCounterStart + elapsedTicks * viewCounterStep;
-}
-
-function renderViewCount() {
-  if (viewCountElement) {
-    viewCountElement.textContent = formatViewCount(getSharedViewCount());
-    viewCountElement.setAttribute("aria-busy", "false");
-  }
-}
-
-function startViewCounter() {
-  renderViewCount();
-  window.setInterval(renderViewCount, 1000);
-}
 
 function resizeCanvas() {
   const pixelRatio = window.devicePixelRatio || 1;
@@ -265,4 +237,3 @@ dots.forEach((dot) => {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 setActiveMemory(0);
-startViewCounter();
