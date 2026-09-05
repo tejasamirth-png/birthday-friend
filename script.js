@@ -90,10 +90,12 @@ function burstFromElement(element) {
 
   if (dialog && typeof dialog.showModal === "function" && !dialog.open) {
     dialog.showModal();
+    document.documentElement.classList.add("surprise-open");
   }
 
   if (surpriseVideo) {
     surpriseVideo.dataset.playbackState = "starting";
+    requestNativeFullscreen();
     surpriseVideo.currentTime = 0;
     surpriseVideo
       .play()
@@ -107,11 +109,73 @@ function burstFromElement(element) {
   }
 }
 
+function requestNativeFullscreen() {
+  if (!surpriseVideo) {
+    return;
+  }
+
+  const fullscreenTarget = dialog || surpriseVideo;
+  const requestFullscreen =
+    fullscreenTarget.requestFullscreen ||
+    fullscreenTarget.webkitRequestFullscreen ||
+    fullscreenTarget.msRequestFullscreen;
+
+  if (requestFullscreen) {
+    surpriseVideo.dataset.fullscreenState = "requesting";
+    let fullscreenPromise;
+
+    try {
+      fullscreenPromise = requestFullscreen.call(fullscreenTarget);
+    } catch {
+      surpriseVideo.dataset.fullscreenState = "css-fullscreen";
+      return;
+    }
+
+    if (fullscreenPromise && typeof fullscreenPromise.then === "function") {
+      fullscreenPromise.then(() => {
+        surpriseVideo.dataset.fullscreenState = "native-fullscreen";
+      }).catch(() => {
+        surpriseVideo.dataset.fullscreenState = "css-fullscreen";
+      });
+    } else {
+      surpriseVideo.dataset.fullscreenState = "native-fullscreen";
+    }
+
+    return;
+  }
+
+  if (typeof surpriseVideo.webkitEnterFullscreen === "function") {
+    try {
+      surpriseVideo.webkitEnterFullscreen();
+      surpriseVideo.dataset.fullscreenState = "native-fullscreen";
+    } catch {
+      surpriseVideo.dataset.fullscreenState = "css-fullscreen";
+    }
+    return;
+  }
+
+  surpriseVideo.dataset.fullscreenState = "css-fullscreen";
+}
+
+function exitNativeFullscreen() {
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(() => {});
+    return;
+  }
+
+  if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  }
+}
+
 function closeSurprise() {
   if (surpriseVideo) {
     surpriseVideo.pause();
     surpriseVideo.dataset.playbackState = "paused";
   }
+
+  document.documentElement.classList.remove("surprise-open");
+  exitNativeFullscreen();
 
   if (dialog?.open) {
     dialog.close();
@@ -149,6 +213,18 @@ dialog?.addEventListener("click", (event) => {
   if (!isInside) {
     closeSurprise();
   }
+});
+
+dialog?.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeSurprise();
+});
+
+dialog?.addEventListener("close", () => {
+  if (surpriseVideo && !surpriseVideo.paused) {
+    surpriseVideo.pause();
+  }
+  document.documentElement.classList.remove("surprise-open");
 });
 
 prevButton?.addEventListener("click", () => setActiveMemory(activeMemory - 1));
